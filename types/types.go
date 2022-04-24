@@ -44,3 +44,16 @@ type CommentData struct {
 	Email string `json:"email"`
 	Body string `json:"body"`
 }
+
+type AlbumData struct {
+	UserId int `json:"userId"`
+	ID int `json:"id"`
+	Title string `json:"title"`
+}
+
+type TodoData struct {
+	UserId int `json:"userId"`
+	ID int `json:"id"`
+	Title string `json:"title"`
+	Completed bool `json:"completed"`
+}

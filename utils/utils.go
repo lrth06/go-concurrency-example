@@ -1,51 +1,44 @@
 package utils
 
 import (
+	"io/ioutil"
+	"net/http"
 	"os"
 )
 
 func ResetFiles() {
-	// if _, err := os.Stat("output/photos.csv"); err == nil {
-	// 	os.Remove("output/photos.csv")
-	// }
-	// if _, err := os.Stat("users.csv"); err == nil {
-	// 	os.Remove("users.csv")
-	// }
-	// f, err := os.Create("output/photos.csv")
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	return
-	// }
-	// defer f.Close()
-	// f2, err := os.Create("output/users.csv")
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	return
-	// }
-	// defer f2.Close()
-	// if _, err := os.Stat("output/photos.csv"); err == nil {
-	// 	os.Remove("output/photos.csv")
-	// }
-	// f3, err := os.Create("output/posts.csv")
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	return
-	// }
-	// defer f3.Close()
-	// if _, err := os.Stat("output/comments.csv"); err == nil {
-	// 	os.Remove("output/comments.csv")
-	// }
-	// f4, err := os.Create("output/comments.csv")
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	return
-	// }
-	// defer f4.Close()
-	// if _, err := os.Stat("output/photos"); err == nil {
-	// 	os.RemoveAll("output/photos")
-	// }
 	if _, err := os.Stat("output"); err == nil {
 		os.RemoveAll("output")
 	}
 	os.MkdirAll("output/photos", 0777)
+}
+
+func GetResponse(url string) (string, error) {
+	resp, err := http.Get(url)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+	resp.Body.Close()
+	return string(body), nil
+}
+
+func WriteCSV(file string, data []string) error {
+	f, err := os.OpenFile(file, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	for _, v := range data {
+		_, err := f.WriteString(v + "\n")
+		f.Close()
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
