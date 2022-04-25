@@ -15,11 +15,13 @@ import (
 )
 
 func ScrapePhotos(){
+	http.DefaultClient.Timeout = 10 * time.Second
+
 	imgResponse, err := utils.GetResponse("https://jsonplaceholder.typicode.com/photos/")
 	if err != nil {
 		panic(err)
 	}
-	unbuffered := make(chan types.ImgData)
+	// unbuffered := make(chan types.ImgData)
 	header := "id,title,url"
 	utils.WriteCSV("output/photos.csv", []string{header})
 	var data []types.ImgData
@@ -34,34 +36,25 @@ func ScrapePhotos(){
 		go func(i int) {
 			defer wg.Done()
 			resData = append(resData, data[i])
-				res ,err:= http.Get(data[i].URL)
-		if err != nil {
-			panic(err)
-		}
-		file, err := os.Create(fmt.Sprintf("output/photos/%d.jpg", data[i].ID))
-		if err != nil {
-			panic(err)
-		}
-		defer file.Close()
-		image , err := ioutil.ReadAll(res.Body)
-		_, err = file.Write(image)
-		file.Close()
-		if err != nil {
-			// panic(err)
-			// wait 5ms to retry
-			time.Sleep(5 * time.Millisecond)
+			res ,err:= http.Get(data[i].URL)
+				if err != nil {
+					panic(err)
+				}
 			file, err := os.Create(fmt.Sprintf("output/photos/%d.jpg", data[i].ID))
 			if err != nil {
 				panic(err)
 			}
 			defer file.Close()
-			image , err = ioutil.ReadAll(res.Body)
+			image , err := ioutil.ReadAll(res.Body)
+			if err != nil {
+				panic(err)
+			}
 			_, err = file.Write(image)
-			file.Close()
+			if err != nil {
+				panic(err)
+			}
+			}(i)
 		}
-		}(i)
-	}
-	close(unbuffered)
 	wg.Wait()
 }
 
